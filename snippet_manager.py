@@ -25,7 +25,7 @@ import uuid
 
 
 # File name where local snippets are saved
-STORAGE_FILE = "snippets.json"
+STORAGE_FILE = os.path.join(os.path.dirname(__file__), "snippets.json")
 
 
 def load_snippets():
