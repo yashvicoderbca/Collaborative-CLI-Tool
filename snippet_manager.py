@@ -24,7 +24,7 @@ import os
 import uuid
 
 
-# File name where local snippets are saved
+# Storage File Path Configuration
 STORAGE_FILE = os.path.join(os.path.dirname(__file__), "snippets.json")
 
 
