@@ -1,129 +1,211 @@
-"""
-Snippet Manager CLI
-===================
-
-Command-line interface for the local code snippet management system.
-
-This module provides CLI commands to:
-- Add a new code snippet
-- List all stored snippets
-- View a snippet by its ID
-- Delete a snippet by its ID
-
-The actual snippet storage and management logic is handled by
-the `snippet_manager` module.
-
-Usage:
-    python cli.py add --title "Example" --code "print('Hello')"
-    python cli.py list
-    python cli.py view --id <snippet_id>
-    python cli.py delete --id <snippet_id>
-
-Author:
-    Yashvi
-
-
-"""
 import argparse
+import requests
 
-from snippet_manager import add_snippet, list_snippets, get_snippet, delete_snippet
+
+# Base URL of the FastAPI backend
+API_URL = "http://127.0.0.1:8000"
+
+
+def add_command(args):
+    """Create a new snippet through the REST API."""
+
+    # Send the snippet title and code to the backend
+    response = requests.post(
+        f"{API_URL}/snippets",
+        json={
+            "title": args.title,
+            "code": args.code
+        }
+    )
+
+    # Handle a successful snippet creation
+    if response.status_code == 200:
+        data = response.json()
+
+        print(data["message"])
+        print(f"Snippet ID: {data['id']}")
+
+    else:
+        # Display the API error response
+        print("Error:", response.text)
+
+
+def list_command(args):
+    """Retrieve and display all stored snippets."""
+
+    # Request all snippets from the FastAPI backend
+    response = requests.get(
+        f"{API_URL}/snippets"
+    )
+
+    if response.status_code == 200:
+        data = response.json()
+        snippets = data["data"]
+
+        # Handle the case where no snippets are available
+        if not snippets:
+            print("No snippets found.")
+            return
+
+        # The API returns snippets as a dictionary
+        # where each key represents a snippet ID
+        for snippet_id, snippet in snippets.items():
+            print("-" * 40)
+            print(f"ID: {snippet_id}")
+            print(f"Title: {snippet.get('title')}")
+            print(f"Code: {snippet.get('code')}")
+
+    else:
+        # Display the API error response
+        print("Error:", response.text)
+
+
+def get_command(args):
+    """Retrieve and display a specific snippet by ID."""
+
+    # Request the snippet using its unique ID
+    response = requests.get(
+        f"{API_URL}/snippets/{args.id}"
+    )
+
+    if response.status_code == 200:
+        data = response.json()
+        snippet = data["data"]
+
+        print(f"ID: {snippet.get('id')}")
+        print(f"Title: {snippet.get('title')}")
+        print(f"Code: {snippet.get('code')}")
+
+    else:
+        # Display the API error response
+        print("Error:", response.text)
+
+
+def delete_command(args):
+    """Delete a snippet using its unique ID."""
+
+    # Send a DELETE request to the FastAPI backend
+    response = requests.delete(
+        f"{API_URL}/snippets/{args.id}"
+    )
+
+    if response.status_code == 200:
+        data = response.json()
+
+        print(data["message"])
+
+    else:
+        # Display the API error response
+        print("Error:", response.text)
 
 
 def main():
-    # Setup command-line argument parser
+    """Configure CLI commands and process user input."""
+
+    # Create the main command-line argument parser
     parser = argparse.ArgumentParser(
-        description="Collaborative CLI tool-local snippet engine"
+        description="Collaborative CLI Tool"
     )
 
+    # Create subcommands for different snippet operations
     subparsers = parser.add_subparsers(
-        dest="command",
-        help="available CLI commands"
+        dest="command"
     )
 
-    # Command: add
+    # ---------------------------------------------------------
+    # ADD command
+    # ---------------------------------------------------------
+
     add_parser = subparsers.add_parser(
         "add",
-        help="add a new code snippet"
+        help="Add a new snippet"
     )
+
+    # Require a title for the new snippet
     add_parser.add_argument(
         "--title",
         required=True,
-        help="title of the snippet"
+        help="Snippet title"
     )
+
+    # Require the code content for the new snippet
     add_parser.add_argument(
         "--code",
         required=True,
-        help="code snippet content"
+        help="Snippet code"
     )
 
-    # Command: list
-    subparsers.add_parser(
+    # Connect the add command to its handler function
+    add_parser.set_defaults(
+        function=add_command
+    )
+
+    # ---------------------------------------------------------
+    # LIST command
+    # ---------------------------------------------------------
+
+    list_parser = subparsers.add_parser(
         "list",
-        help="list all the local code snippets"
+        help="List all snippets"
     )
 
-    # Command: view
-    view_parser = subparsers.add_parser(
-        "view",
-        help="view code snippet by ID"
-    )
-    view_parser.add_argument(
-        "--id",
-        required=True,
-        help="snippet ID"
+    # Connect the list command to its handler function
+    list_parser.set_defaults(
+        function=list_command
     )
 
-    # Command: delete
-    del_parser = subparsers.add_parser(
+    # ---------------------------------------------------------
+    # GET command
+    # ---------------------------------------------------------
+
+    get_parser = subparsers.add_parser(
+        "get",
+        help="Get a snippet by ID"
+    )
+
+    # Accept the snippet ID as a positional argument
+    get_parser.add_argument(
+        "id",
+        help="Snippet ID"
+    )
+
+    # Connect the get command to its handler function
+    get_parser.set_defaults(
+        function=get_command
+    )
+
+    # ---------------------------------------------------------
+    # DELETE command
+    # ---------------------------------------------------------
+
+    delete_parser = subparsers.add_parser(
         "delete",
-        help="delete a snippet by ID"
-    )
-    del_parser.add_argument(
-        "--id",
-        required=True,
-        help="snippet ID"
+        help="Delete a snippet by ID"
     )
 
+    # Accept the snippet ID as a positional argument
+    delete_parser.add_argument(
+        "id",
+        help="Snippet ID"
+    )
+
+    # Connect the delete command to its handler function
+    delete_parser.set_defaults(
+        function=delete_command
+    )
+
+    # Parse the command-line arguments
     args = parser.parse_args()
 
-    # Route CLI command to snippet manager functions
-    if args.command == "add":
-        snippet_id = add_snippet(args.title, args.code)
-        print(f"[SUCCESS] Snippet added successfully. ID: {snippet_id}")
-
-    elif args.command == "list":
-        snippets = list_snippets()
-
-        if not snippets:
-            print("[INFO] NO SNIPPETS FOUND.")
-        else:
-            print("\n--- Local Code Snippets ---")
-            for s_id, data in snippets.items():
-                print(f"ID: {s_id} | Title: {data['title']}")
-                print("=======================================\n")
-
-    elif args.command == "view":
-        snippet = get_snippet(args.id)
-
-        if snippet:
-            print(
-                f"\n--- Snippet: {snippet['title']} "
-                f"(ID: {snippet['id']}) ---"
-            )
-            print(snippet["code"])
-            print("------------------------------------------------------------\n")
-        else:
-            print(f"[ERROR] Snippet with ID '{args.id}' not found.")
-
-    elif args.command == "delete":
-        if delete_snippet(args.id):
-            print(f"[SUCCESS] SNIPPET '{args.id}' deleted successfully.")
-        else:
-            print(f"[ERROR] SNIPPET with ID '{args.id}' not found.")
+    # Execute the selected command if a valid command was provided
+    if hasattr(args, "function"):
+        args.function(args)
 
     else:
+        # Show available commands when no command is provided
         parser.print_help()
 
 
+# Run the CLI application when this file is executed directly
 if __name__ == "__main__":
     main()
