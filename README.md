@@ -1,27 +1,10 @@
 # 🚀 Collaborative CLI Tool
+A lightweight, network command-line snippet manager powered by a FastAPI REST backend and local persistent JSON storage. 
 
-> A Python-based command-line snippet manager powered by a FastAPI REST API and local JSON storage.
+## Status
+-**Core Engine:** Functional(part 1)
+-**networking & REST API:** Complete(part2)
+-**multi-user handles and filtering:** complete(part 3)
 
-**Status:** 🟢 Core Version Working  
-**Development:** 🚧 Ongoing
-
----
-
-## 📌 Overview
-
-Collaborative CLI Tool is a lightweight developer utility for managing code snippets directly from the command line.
-
-The application uses a simple client-server architecture where the CLI communicates with a FastAPI backend through HTTP requests.
-
-```text
-CLI
- │
- │ HTTP Requests
- ▼
-FastAPI Server
- │
- ▼
-Snippet Manager
- │
- ▼
-JSON Storage
+## Overview
+Collaborative CLI Tool allows developers to store, retrieve, filter, and delete code snippets directly from their terminal. It uses a client-server architecture where the CLI communicates with a FastAPI server over HTTP network requests.
