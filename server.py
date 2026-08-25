@@ -1,9 +1,11 @@
 """
 Collaborative CLI Tool - FastAPI Server
 
-This module provides REST API endpoints
-to manage snippets over HTTP.
+Provides REST API endpoints supporting user handles
+and author filtering.
 """
+
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -15,7 +17,6 @@ from snippet_manager import (
     delete_snippet,
 )
 
-
 # Initialize FastAPI application
 app = FastAPI(
     title="Collaborative CLI Tool - API Server"
@@ -26,6 +27,7 @@ app = FastAPI(
 class SnippetCreate(BaseModel):
     title: str
     code: str
+    author: Optional[str] = "Anonymous"
 
 
 # Health check endpoint
@@ -40,11 +42,11 @@ def read_root():
 # Create a new snippet
 @app.post("/snippets")
 def create_snippet(snippet: SnippetCreate):
-    """API endpoint to create a new snippet."""
-
+    """API endpoint to create a snippet with an author."""
     snippet_id = add_snippet(
         snippet.title,
-        snippet.code
+        snippet.code,
+        snippet.author
     )
 
     return {
@@ -56,10 +58,9 @@ def create_snippet(snippet: SnippetCreate):
 
 # List all snippets
 @app.get("/snippets")
-def fetch_all_snippets():
-    """API endpoint to retrieve all snippets."""
-
-    snippets = list_snippets()
+def fetch_all_snippets(author: Optional[str] = None):
+    """API endpoint to retrieve snippets, optionally filtered by author."""
+    snippets = list_snippets(author_filter=author)
 
     return {
         "status": "success",
@@ -71,7 +72,6 @@ def fetch_all_snippets():
 @app.get("/snippets/{snippet_id}")
 def fetch_snippet(snippet_id: str):
     """API endpoint to retrieve a single snippet by ID."""
-
     snippet = get_snippet(snippet_id)
 
     if not snippet:
@@ -90,7 +90,6 @@ def fetch_snippet(snippet_id: str):
 @app.delete("/snippets/{snippet_id}")
 def remove_snippet(snippet_id: str):
     """API endpoint to delete a snippet by ID."""
-
     deleted = delete_snippet(snippet_id)
 
     if not deleted:
@@ -103,3 +102,15 @@ def remove_snippet(snippet_id: str):
         "status": "success",
         "message": f"Snippet '{snippet_id}' deleted successfully"
     }
+
+
+# Run server directly
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(
+        "server:app",
+        host="127.0.0.1",
+        port=8000,
+        reload=True
+    )
