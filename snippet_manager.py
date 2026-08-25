@@ -1,31 +1,23 @@
 """
 Snippet Manager
-===============
 
 A lightweight local snippet storage utility.
 
-This module provides functionality to:
-- Add new code snippets
-- List all stored snippets
-- Retrieve a snippet by ID
-- Delete snippets
-- Persist snippet data in a local JSON file
+Provides functions to manage snippets with author handles.
 
-Storage:
-    snippets.json
-
-Author:
-    Yashvi
-
-
+Author: Yashvi
 """
+
 import json
 import os
 import uuid
 
 
-# Storage File Path Configuration
-STORAGE_FILE = os.path.join(os.path.dirname(__file__), "snippets.json")
+# File name where local snippets are saved
+STORAGE_FILE = os.path.join(
+    os.path.dirname(__file__),
+    "snippets.json"
+)
 
 
 def load_snippets():
@@ -36,6 +28,7 @@ def load_snippets():
     try:
         with open(STORAGE_FILE, "r", encoding="utf-8") as file:
             return json.load(file)
+
     except (json.JSONDecodeError, OSError):
         return {}
 
@@ -46,8 +39,8 @@ def save_snippets(snippets):
         json.dump(snippets, file, indent=4)
 
 
-def add_snippet(title, code):
-    """Create a new snippet with a unique short ID."""
+def add_snippet(title, code, author="Anonymous"):
+    """Create a new snippet with a unique ID and author handle."""
     snippets = load_snippets()
 
     snippet_id = str(uuid.uuid4())[:8]
@@ -55,7 +48,8 @@ def add_snippet(title, code):
     snippets[snippet_id] = {
         "id": snippet_id,
         "title": title,
-        "code": code
+        "code": code,
+        "author": author
     }
 
     save_snippets(snippets)
@@ -63,13 +57,22 @@ def add_snippet(title, code):
     return snippet_id
 
 
-def list_snippets():
-    """Fetch all the stored snippets."""
-    return load_snippets()
+def list_snippets(author_filter=None):
+    """Fetch stored snippets, optionally filtered by author."""
+    snippets = load_snippets()
+
+    if author_filter:
+        return {
+            snippet_id: data
+            for snippet_id, data in snippets.items()
+            if data.get("author", "").lower() == author_filter.lower()
+        }
+
+    return snippets
 
 
 def get_snippet(snippet_id):
-    """Retrieve a specific snippet by its unique ID."""
+    """Get a single snippet using its unique ID."""
     snippets = load_snippets()
 
     return snippets.get(snippet_id)
