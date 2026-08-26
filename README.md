@@ -1,41 +1,54 @@
-# 🚀 Collaborative CLI Tool
-A lightweight, network command-line snippet manager powered by a FastAPI REST backend and local persistent JSON storage. 
+# Collaborative CLI Tool
+
+A lightweight, network-based command-line snippet manager powered by a FastAPI REST backend and local persistent JSON storage.
 
 ## Status
--**Core Engine:** Functional(part 1)
--**networking & REST API:** Complete(part2)
--**multi-user handles and filtering:** complete(part 3)
+
+- **Core Engine:** Functional (Part 1)
+- **Networking & REST API:** Complete (Part 2)
+- **Multi-user Handles and Filtering:** Complete (Part 3)
+- **Keyword Search & Clipboard Support:** Complete (Part 4)
 
 ## Overview
-Collaborative CLI Tool allows developers to store, retrieve, filter, and delete code snippets directly from their terminal. It uses a client-server architecture where the CLI communicates with a FastAPI server over HTTP network requests.
-----
-## Features 
--**Add snippets:** create code snippets with custom titles, code content, and author handles (`--author`).
--**list and filter snippets:** view all stored snippets or filter specifically by author handles.
--**view snippet:** fetch complete snippet details using unique short IDs. 
--**delete snippets:** remove outdated or unwanted snippets by ID.
--**Robush Exception handling:** Network failure guards and HTTP error statuses
---
+
+Collaborative CLI Tool allows developers to store, retrieve, search, filter, copy, and delete code snippets directly from their terminal.
+
+It uses a client-server architecture where the CLI communicates with a FastAPI server through HTTP requests.
+
+## Features
+
+- **Add snippets:** Create code snippets with custom titles, code content, and author handles using `--author`.
+- **List snippets:** View all stored snippets.
+- **Filter snippets:** Filter snippets by author handle.
+- **Search by title:** Search snippets using keywords contained in the title.
+- **Search by code:** Search snippets using keywords contained in the code.
+- **Combined search:** Search by title, code, and author together.
+- **View snippet:** Fetch complete snippet details using unique short IDs.
+- **Copy snippet code:** Copy the code of a snippet directly to the system clipboard using `--copy`.
+- **Delete snippets:** Remove outdated or unwanted snippets by ID.
+- **Persistent storage:** Store snippets locally in a JSON file.
+- **Robust exception handling:** Handle network connection failures and HTTP errors.
+
 ## Tech Stack
--**Add snippets:** python 3.x
--**API Framework:** FastAPI
--**ASGI Server:** uvicorn
--**HTTP client:** requests
--**data model validation:** pydantic
---
-## quickstart amd usage
-### 1. start the FastAPI server
-'''bash
-python -m uvicorn server:app --reload
-### 2. RUN CLI command(In separate terminal)
-**add a new snippet:
-python cli.py add --title "array reverse" --code "arr.reverse()" --author "yashvi"
-**list all the snippets:
-python cli.py list
-**filter snippets by author:
-python cli.py list --author "yashvi"
-**get the snippet by ID:
-python cli.py get<SNIPPET_ID>
-**delete a snippet by ID:
-python cli.py delete <SNIPPET_ID>
+
+- **Programming Language:** Python 3.x
+- **API Framework:** FastAPI
+- **ASGI Server:** Uvicorn
+- **HTTP Client:** Requests
+- **Data Model Validation:** Pydantic
+- **Clipboard Support:** Pyperclip
+- **Storage:** Local JSON file
+
+## Project Structure
+
+```text
+Collaborative-CLI-Tool/
+│
+├── cli.py
+├── server.py
+├── snippet_manager.py
+├── requirements.txt
+├── README.md
+├── .gitignore
+└── snippets.json
 
