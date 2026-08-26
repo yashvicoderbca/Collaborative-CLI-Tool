@@ -3,7 +3,8 @@ Snippet Manager
 
 A lightweight local snippet storage utility.
 
-Provides functions to manage snippets with author handles.
+Provides functions to create, retrieve, search, filter,
+and delete code snippets with author handles.
 
 Author: Yashvi
 """
@@ -57,15 +58,33 @@ def add_snippet(title, code, author="Anonymous"):
     return snippet_id
 
 
-def list_snippets(author_filter=None):
-    """Fetch stored snippets, optionally filtered by author."""
+def list_snippets(
+    author_filter=None,
+    title_filter=None,
+    code_filter=None
+):
+    """Fetch stored snippets using optional author and keyword filters."""
     snippets = load_snippets()
 
     if author_filter:
-        return {
+        snippets = {
             snippet_id: data
             for snippet_id, data in snippets.items()
             if data.get("author", "").lower() == author_filter.lower()
+        }
+
+    if title_filter:
+        snippets = {
+            snippet_id: data
+            for snippet_id, data in snippets.items()
+            if title_filter.lower() in data.get("title", "").lower()
+        }
+
+    if code_filter:
+        snippets = {
+            snippet_id: data
+            for snippet_id, data in snippets.items()
+            if code_filter.lower() in data.get("code", "").lower()
         }
 
     return snippets
