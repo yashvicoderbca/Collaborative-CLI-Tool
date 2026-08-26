@@ -1,4 +1,13 @@
+"""
+Collaborative CLI Tool - Command Line Client
+
+Provides commands to add, list, search, retrieve,
+and delete code snippets through the FastAPI backend.
+"""
+
 import argparse
+
+import pyperclip
 import requests
 
 
@@ -8,7 +17,6 @@ API_URL = "http://127.0.0.1:8000"
 
 def add_command(args):
     """Create a new snippet with an author tag."""
-
     payload = {
         "title": args.title,
         "code": args.code,
@@ -86,6 +94,66 @@ def list_command(args):
         print("[ERROR] Could not connect to the FastAPI server.")
 
 
+def search_command(args):
+    """Search snippets using title and code keywords."""
+
+    params = {}
+
+    if args.title:
+        params["title"] = args.title
+
+    if args.code:
+        params["code"] = args.code
+
+    if args.author:
+        params["author"] = args.author
+
+    if not params:
+        print(
+            "[ERROR] Please provide at least one search filter."
+        )
+        print(
+            "Example: "
+            "python cli.py search --title \"array\""
+        )
+        return
+
+    try:
+        response = requests.get(
+            f"{API_URL}/snippets",
+            params=params
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+            snippets = data.get("data", {})
+
+            if not snippets:
+                print("[INFO] No matching snippets found.")
+                return
+
+            print("\n========== SEARCH RESULTS ==========\n")
+
+            for snippet_id, snippet in snippets.items():
+
+                author = snippet.get(
+                    "author",
+                    "Anonymous"
+                )
+
+                print(f"ID     : {snippet_id}")
+                print(f"Title  : {snippet.get('title')}")
+                print(f"Author : {author}")
+                print(f"Code   : {snippet.get('code')}")
+                print("-" * 40)
+
+        else:
+            print("[ERROR]", response.text)
+
+    except requests.exceptions.ConnectionError:
+        print("[ERROR] Could not connect to the FastAPI server.")
+
+
 def get_command(args):
     """Retrieve and display a specific snippet by ID."""
 
@@ -109,6 +177,22 @@ def get_command(args):
                 f"{snippet.get('author', 'Anonymous')}"
             )
             print(f"Code   : {snippet.get('code')}")
+
+            if args.copy:
+                try:
+                    pyperclip.copy(snippet.get("code", ""))
+
+                    print(
+                        "\n[SUCCESS] Code copied "
+                        "to clipboard."
+                    )
+
+                except pyperclip.PyperclipException:
+                    print(
+                        "\n[ERROR] Could not copy code "
+                        "to the clipboard."
+                    )
+
             print("==============================\n")
 
         else:
@@ -201,6 +285,34 @@ def main():
     )
 
     # =========================
+    # SEARCH COMMAND
+    # =========================
+
+    search_parser = subparsers.add_parser(
+        "search",
+        help="Search snippets by title or code"
+    )
+
+    search_parser.add_argument(
+        "--title",
+        help="Search for a keyword in snippet titles"
+    )
+
+    search_parser.add_argument(
+        "--code",
+        help="Search for a keyword in snippet code"
+    )
+
+    search_parser.add_argument(
+        "--author",
+        help="Filter search results by author"
+    )
+
+    search_parser.set_defaults(
+        function=search_command
+    )
+
+    # =========================
     # GET COMMAND
     # =========================
 
@@ -212,6 +324,12 @@ def main():
     get_parser.add_argument(
         "id",
         help="Snippet ID"
+    )
+
+    get_parser.add_argument(
+        "--copy",
+        action="store_true",
+        help="Copy snippet code to the clipboard"
     )
 
     get_parser.set_defaults(
