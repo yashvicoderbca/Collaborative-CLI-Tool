@@ -1,8 +1,8 @@
 """
 Collaborative CLI Tool - FastAPI Server
 
-Provides REST API endpoints supporting user handles
-and author filtering.
+Provides REST API endpoints supporting user handles,
+author filtering, and keyword search.
 """
 
 from typing import Optional
@@ -16,6 +16,7 @@ from snippet_manager import (
     get_snippet,
     delete_snippet,
 )
+
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -33,7 +34,7 @@ class SnippetCreate(BaseModel):
 # Health check endpoint
 @app.get("/")
 def read_root():
-    """Health check endpoint."""
+    """Return the API server health status."""
     return {
         "message": "Collaborative CLI Tool API is running!"
     }
@@ -42,7 +43,7 @@ def read_root():
 # Create a new snippet
 @app.post("/snippets")
 def create_snippet(snippet: SnippetCreate):
-    """API endpoint to create a snippet with an author."""
+    """Create a new snippet with an author handle."""
     snippet_id = add_snippet(
         snippet.title,
         snippet.code,
@@ -58,9 +59,17 @@ def create_snippet(snippet: SnippetCreate):
 
 # List all snippets
 @app.get("/snippets")
-def fetch_all_snippets(author: Optional[str] = None):
-    """API endpoint to retrieve snippets, optionally filtered by author."""
-    snippets = list_snippets(author_filter=author)
+def fetch_all_snippets(
+    author: Optional[str] = None,
+    title: Optional[str] = None,
+    code: Optional[str] = None
+):
+    """Retrieve snippets using optional author and keyword filters."""
+    snippets = list_snippets(
+        author_filter=author,
+        title_filter=title,
+        code_filter=code
+    )
 
     return {
         "status": "success",
@@ -71,7 +80,7 @@ def fetch_all_snippets(author: Optional[str] = None):
 # Get a snippet by ID
 @app.get("/snippets/{snippet_id}")
 def fetch_snippet(snippet_id: str):
-    """API endpoint to retrieve a single snippet by ID."""
+    """Retrieve a single snippet by ID."""
     snippet = get_snippet(snippet_id)
 
     if not snippet:
@@ -89,7 +98,7 @@ def fetch_snippet(snippet_id: str):
 # Delete a snippet by ID
 @app.delete("/snippets/{snippet_id}")
 def remove_snippet(snippet_id: str):
-    """API endpoint to delete a snippet by ID."""
+    """Delete a snippet by ID."""
     deleted = delete_snippet(snippet_id)
 
     if not deleted:
